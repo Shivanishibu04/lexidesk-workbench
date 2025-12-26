@@ -1,105 +1,164 @@
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Dark Academia Theme - Dark by default */
+    --background: 30 10% 8%;
+    --foreground: 40 20% 90%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 30 12% 10%;
+    --card-foreground: 40 20% 90%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 30 12% 12%;
+    --popover-foreground: 40 20% 90%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 35 30% 55%;
+    --primary-foreground: 30 10% 8%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 30 15% 15%;
+    --secondary-foreground: 40 20% 85%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 30 10% 18%;
+    --muted-foreground: 35 15% 55%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 140 25% 25%;
+    --accent-foreground: 40 25% 90%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 60% 40%;
+    --destructive-foreground: 40 20% 95%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 30 15% 18%;
+    --input: 30 12% 14%;
+    --ring: 35 30% 45%;
 
-    --radius: 0.5rem;
+    --radius: 0.375rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Sidebar - Darker panel */
+    --sidebar-background: 30 12% 6%;
+    --sidebar-foreground: 40 15% 75%;
+    --sidebar-primary: 35 30% 55%;
+    --sidebar-primary-foreground: 30 10% 8%;
+    --sidebar-accent: 30 15% 12%;
+    --sidebar-accent-foreground: 40 20% 90%;
+    --sidebar-border: 30 12% 15%;
+    --sidebar-ring: 35 30% 45%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Custom tokens */
+    --gold: 40 60% 50%;
+    --gold-muted: 40 40% 35%;
+    --sepia: 35 25% 40%;
+    --parchment: 40 30% 85%;
+    --forest: 140 30% 25%;
+    --forest-light: 140 25% 35%;
+    --ink: 30 15% 12%;
+    --leather: 25 35% 20%;
 
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Gradients */
+    --gradient-leather: linear-gradient(180deg, hsl(30 12% 10%) 0%, hsl(25 15% 8%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(40 60% 50%) 0%, hsl(35 50% 40%) 100%);
+    --gradient-parchment: linear-gradient(180deg, hsl(40 25% 18%) 0%, hsl(30 15% 12%) 100%);
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-}
-
-@layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-serif antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .text-gradient-gold {
+    background: linear-gradient(135deg, hsl(40 60% 50%) 0%, hsl(35 50% 40%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .border-gold {
+    border-color: hsl(40 60% 50% / 0.3);
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 20px hsl(40 60% 50% / 0.15);
+  }
+
+  .card-academia {
+    @apply bg-card border border-border/50 rounded-lg;
+    background: linear-gradient(180deg, hsl(30 12% 11%) 0%, hsl(30 12% 9%) 100%);
+  }
+
+  .input-academia {
+    @apply bg-input border border-border/60 rounded-md px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-primary/50 transition-all duration-200;
+  }
+
+  .btn-primary-academia {
+    @apply bg-primary text-primary-foreground font-medium px-6 py-2.5 rounded-md hover:bg-primary/90 transition-all duration-200 shadow-md;
+    background: linear-gradient(135deg, hsl(35 30% 55%) 0%, hsl(30 25% 45%) 100%);
+  }
+
+  .btn-secondary-academia {
+    @apply bg-secondary text-secondary-foreground font-medium px-6 py-2.5 rounded-md border border-border/50 hover:bg-secondary/80 transition-all duration-200;
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-all duration-200 cursor-pointer;
+  }
+
+  .sidebar-item-active {
+    @apply bg-sidebar-accent text-sidebar-primary border-l-2 border-primary;
+  }
+
+  .prose-legal {
+    @apply leading-relaxed text-foreground/90;
+  }
+
+  .sentence-block {
+    @apply p-4 border-l-2 border-primary/40 bg-muted/30 rounded-r-md mb-3 hover:border-primary/70 transition-colors duration-200;
+  }
+
+  .chat-bubble-user {
+    @apply bg-primary/20 border border-primary/30 rounded-2xl rounded-br-sm px-4 py-3 max-w-[80%] ml-auto;
+  }
+
+  .chat-bubble-assistant {
+    @apply bg-muted/50 border border-border/50 rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%];
+  }
+
+  .file-upload-zone {
+    @apply border-2 border-dashed border-border/60 rounded-lg p-8 text-center hover:border-primary/50 hover:bg-muted/20 transition-all duration-300 cursor-pointer;
+  }
+}
+
+@layer utilities {
+  .scrollbar-academia {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(30 15% 25%) hsl(30 12% 10%);
+  }
+
+  .scrollbar-academia::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollbar-academia::-webkit-scrollbar-track {
+    background: hsl(30 12% 10%);
+  }
+
+  .scrollbar-academia::-webkit-scrollbar-thumb {
+    background: hsl(30 15% 25%);
+    border-radius: 4px;
+  }
+
+  .scrollbar-academia::-webkit-scrollbar-thumb:hover {
+    background: hsl(30 15% 35%);
   }
 }
