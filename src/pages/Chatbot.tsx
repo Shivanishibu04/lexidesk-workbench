@@ -54,7 +54,11 @@ export default function Chatbot() {
         },
       ]);
     } catch (error) {
-      toast.error('Failed to upload document');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload document';
+      toast.error(errorMessage, {
+        description: 'Ensure the LeXIDesk backend is running at the configured API URL.',
+        duration: 5000,
+      });
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
@@ -95,7 +99,11 @@ export default function Chatbot() {
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      toast.error('Failed to get response');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get response';
+      toast.error(errorMessage, {
+        description: 'Ensure the LeXIDesk backend is running at the configured API URL.',
+        duration: 5000,
+      });
     } finally {
       setIsLoading(false);
     }

@@ -25,7 +25,11 @@ export default function SentenceDetection() {
       setSentences(result.sentences);
       toast.success(`Detected ${result.count} sentences`);
     } catch (error) {
-      toast.error('Failed to detect sentences');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to detect sentences';
+      toast.error(errorMessage, {
+        description: 'Ensure the LeXIDesk backend is running at the configured API URL.',
+        duration: 5000,
+      });
     } finally {
       setIsLoading(false);
     }

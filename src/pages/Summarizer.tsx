@@ -30,7 +30,11 @@ export default function Summarizer() {
       setResult(response);
       toast.success('Summary generated successfully');
     } catch (error) {
-      toast.error('Failed to generate summary');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate summary';
+      toast.error(errorMessage, {
+        description: 'Ensure the LeXIDesk backend is running at the configured API URL.',
+        duration: 5000,
+      });
     } finally {
       setIsLoading(false);
     }
