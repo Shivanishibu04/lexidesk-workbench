@@ -363,7 +363,7 @@ class SentenceSummarizer:
         
         # Combine scores with weights
         combined_scores = (
-            self.cnn_prob_weight * cnn_scores +
+            self.cnn_prob_weight * cnn_scores +                    # make cnn probability score 0
             self.textrank_weight * textrank_scores +
             self.tfidf_weight * similarity_scores +
             self.position_weight * position_scores
