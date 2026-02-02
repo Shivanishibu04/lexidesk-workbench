@@ -8,6 +8,7 @@ import SentenceDetection from "./pages/SentenceDetection";
 import Summarizer from "./pages/Summarizer";
 import Chatbot from "./pages/Chatbot";
 import NotFound from "./pages/NotFound";
+import { ThemeToggle } from "./components/ThemeToggle";
 
 const queryClient = new QueryClient();
 
@@ -15,7 +16,8 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      <Sonner position="top-right" theme="dark" />
+      <Sonner position="top-right" />
+      <ThemeToggle />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Dashboard />} />

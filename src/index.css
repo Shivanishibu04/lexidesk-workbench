@@ -61,6 +61,72 @@
     --gradient-leather: linear-gradient(180deg, hsl(30 12% 10%) 0%, hsl(25 15% 8%) 100%);
     --gradient-gold: linear-gradient(135deg, hsl(40 60% 50%) 0%, hsl(35 50% 40%) 100%);
     --gradient-parchment: linear-gradient(180deg, hsl(40 25% 18%) 0%, hsl(30 15% 12%) 100%);
+
+    /* Component Gradients & Colors */
+    --card-gradient: linear-gradient(180deg, hsl(30 12% 11%) 0%, hsl(30 12% 9%) 100%);
+    --primary-gradient: linear-gradient(135deg, hsl(35 30% 55%) 0%, hsl(30 25% 45%) 100%);
+    --scrollbar-track: hsl(30 12% 10%);
+    --scrollbar-thumb: hsl(30 15% 25%);
+    --scrollbar-thumb-hover: hsl(30 15% 35%);
+  }
+
+  .light {
+    /* Light Academia Theme */
+    --background: 40 20% 97%;
+    --foreground: 30 10% 10%;
+
+    --card: 40 15% 94%;
+    --card-foreground: 30 10% 10%;
+
+    --popover: 40 15% 94%;
+    --popover-foreground: 30 10% 10%;
+
+    --primary: 35 40% 45%;
+    --primary-foreground: 40 20% 98%;
+
+    --secondary: 35 20% 90%;
+    --secondary-foreground: 30 10% 15%;
+
+    --muted: 35 20% 90%;
+    --muted-foreground: 30 10% 40%;
+
+    --accent: 140 30% 40%;
+    --accent-foreground: 40 20% 98%;
+
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 40 20% 98%;
+
+    --border: 30 15% 85%;
+    --input: 30 15% 90%;
+    --ring: 35 40% 45%;
+
+    /* Sidebar - Light panel */
+    --sidebar-background: 40 15% 92%;
+    --sidebar-foreground: 30 10% 20%;
+    --sidebar-primary: 35 40% 45%;
+    --sidebar-primary-foreground: 40 20% 98%;
+    --sidebar-accent: 35 15% 85%;
+    --sidebar-accent-foreground: 30 10% 15%;
+    --sidebar-border: 30 15% 85%;
+    --sidebar-ring: 35 40% 45%;
+
+    /* Custom tokens fixes for light mode */
+    --gold: 35 50% 45%;
+    --gold-muted: 35 40% 70%;
+    --sepia: 35 20% 85%;
+    --ink: 30 15% 10%;
+    --leather: 30 20% 80%;
+
+    --gradient-leather: linear-gradient(180deg, hsl(40 15% 90%) 0%, hsl(40 15% 95%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(40 55% 45%) 0%, hsl(35 50% 35%) 100%);
+    --gradient-parchment: linear-gradient(180deg, hsl(40 20% 98%) 0%, hsl(40 25% 94%) 100%);
+
+    /* Component Gradients & Colors - Light */
+    --card-gradient: linear-gradient(180deg, hsl(40 15% 96%) 0%, hsl(40 15% 92%) 100%);
+    --primary-gradient: linear-gradient(135deg, hsl(35 40% 50%) 0%, hsl(35 40% 40%) 100%);
+    --scrollbar-track: hsl(40 15% 95%);
+    --scrollbar-thumb: hsl(35 20% 80%);
+    --scrollbar-thumb-hover: hsl(35 20% 70%);
   }
 
   * {
@@ -71,30 +137,35 @@
     @apply bg-background text-foreground font-serif antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-display;
   }
 }
 
 @layer components {
   .text-gradient-gold {
-    background: linear-gradient(135deg, hsl(40 60% 50%) 0%, hsl(35 50% 40%) 100%);
+    background: var(--gradient-gold);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .border-gold {
-    border-color: hsl(40 60% 50% / 0.3);
+    border-color: hsl(var(--gold) / 0.3);
   }
 
   .glow-gold {
-    box-shadow: 0 0 20px hsl(40 60% 50% / 0.15);
+    box-shadow: 0 0 20px hsl(var(--gold) / 0.15);
   }
 
   .card-academia {
     @apply bg-card border border-border/50 rounded-lg;
-    background: linear-gradient(180deg, hsl(30 12% 11%) 0%, hsl(30 12% 9%) 100%);
+    background: var(--card-gradient);
   }
 
   .input-academia {
@@ -103,7 +174,7 @@
 
   .btn-primary-academia {
     @apply bg-primary text-primary-foreground font-medium px-6 py-2.5 rounded-md hover:bg-primary/90 transition-all duration-200 shadow-md;
-    background: linear-gradient(135deg, hsl(35 30% 55%) 0%, hsl(30 25% 45%) 100%);
+    background: var(--primary-gradient);
   }
 
   .btn-secondary-academia {
@@ -142,7 +213,7 @@
 @layer utilities {
   .scrollbar-academia {
     scrollbar-width: thin;
-    scrollbar-color: hsl(30 15% 25%) hsl(30 12% 10%);
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   }
 
   .scrollbar-academia::-webkit-scrollbar {
@@ -150,15 +221,15 @@
   }
 
   .scrollbar-academia::-webkit-scrollbar-track {
-    background: hsl(30 12% 10%);
+    background: var(--scrollbar-track);
   }
 
   .scrollbar-academia::-webkit-scrollbar-thumb {
-    background: hsl(30 15% 25%);
+    background: var(--scrollbar-thumb);
     border-radius: 4px;
   }
 
   .scrollbar-academia::-webkit-scrollbar-thumb:hover {
-    background: hsl(30 15% 35%);
+    background: var(--scrollbar-thumb-hover);
   }
 }

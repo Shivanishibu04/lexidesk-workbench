@@ -56,13 +56,18 @@ def get_llm_client():
         except Exception:
             pass
 
-    # ---------- Gemini (NEW SDK) ----------
+    # ---------- Gemini (google-generativeai) ----------
     gemini_key = os.getenv("GEMINI_API_KEY")
     if gemini_key:
         try:
-            from google import genai
-            client = genai.Client(api_key=gemini_key)
-            return client, "gemini"
+            import google.generativeai as genai
+            genai.configure(api_key=gemini_key)
+            # Return the module itself or a configured object that we can use later
+            # For consistency with the logic below, we'll return the genai module as the 'client'
+            # or a specific model instance if we want to be cleaner.
+            # But the generating code expects 'client.models.generate_content' which is also not quite right for this SDK.
+            # Let's return the genai module and fix the generation logic too.
+            return genai, "gemini"
         except Exception:
             pass
 
@@ -100,15 +105,9 @@ def generate_answer(question: str, context: str) -> str:
     # ---------- Gemini ----------
     if provider == "gemini":
         try:
-            response = client.models.generate_content(
-                model="gemini-1.5-pro",
-                contents=[
-                    {
-                        "role": "user",
-                        "parts": [{"text": prompt}]
-                    }
-                ],
-            )
+            # client is the 'genai' module here
+            model = client.GenerativeModel("gemini-1.5-pro")
+            response = model.generate_content(prompt)
             return response.text.strip()
         except Exception as e:
             print(f"[WARN] Gemini error: {e}")
