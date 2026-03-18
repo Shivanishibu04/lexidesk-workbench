@@ -258,7 +258,7 @@ def mmr(sent_emb, doc_emb, lambda_param, top_k):
 # =========================================================
 
 def summarize(
-    judgement,
+    sentences,
     rhet_model,
     vocab,
     label_encoder,
@@ -266,8 +266,6 @@ def summarize(
     top_k=None,
     preserve_order=True
 ):
-
-    sentences = split_sentences(judgement)
 
     if len(sentences) == 0:
         return [], np.array([]), {}
@@ -361,7 +359,7 @@ def main():
     for doc in tqdm(dataset):
 
         sentences, weights, component_scores = summarize(
-            doc["judgement"],
+            split_sentences(doc["judgement"]),
             rhet_model,
             vocab,
             label_encoder

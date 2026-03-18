@@ -13,14 +13,15 @@ LeXIDesk is a comprehensive legal text analysis platform that combines advanced 
 ## � Table of Contents
 
 1. [Prerequisites](#prerequisites)
-2. [Getting Started](#getting-started)
-3. [Frontend Setup](#frontend-setup)
-4. [Backend Setup](#backend-setup)
-5. [Environment Configuration](#environment-configuration)
-6. [Running the Application](#running-the-application)
-7. [Project Structure](#project-structure)
-8. [API Documentation](#api-documentation)
-9. [Troubleshooting](#troubleshooting)
+2. [Platform and Tools Used](#platform-and-tools-used)
+3. [Getting Started](#getting-started)
+4. [Frontend Setup](#frontend-setup)
+5. [Backend Setup](#backend-setup)
+6. [Environment Configuration](#environment-configuration)
+7. [Running the Application](#running-the-application)
+8. [Project Structure](#project-structure)
+9. [API Documentation](#api-documentation)
+10. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -32,6 +33,50 @@ Before you begin, ensure you have the following installed on your system:
 - **Python** (v3.9, 3.10, or 3.11) - [Download here](https://www.python.org/downloads/)
 - **Git** - [Download here](https://git-scm.com/downloads)
 - **Google Gemini API Key** - [Get one here](https://makersuite.google.com/app/apikey)
+
+---
+
+## 🛠️ Platform and Tools Used
+
+### Platform
+
+**Visual Studio Code (VS Code):** Used as the primary development environment for writing, editing, and managing the project code for both frontend and backend components.
+
+**Google Colab:** Used for training and experimenting with machine learning models, especially for tasks such as sentence boundary detection, rhetorical role classification, and summarization model testing.
+
+### Tools and Technologies
+
+#### Programming Languages
+
+**Python:** Used for implementing machine learning models, backend APIs, and NLP processing.
+
+**TypeScript:** Used in the frontend for building a scalable and maintainable user interface.
+
+#### Frameworks
+
+**FastAPI:** Used to develop the backend API for handling requests, running ML inference, and connecting the frontend with the NLP models.
+
+**React:** Used for building the interactive frontend interface.
+
+#### Machine Learning and NLP Libraries
+
+**PyTorch / TensorFlow:** Used for developing and running deep learning models such as CNN-CRF and BiLSTM.
+
+**Scikit-learn:** Used for TF-IDF vectorization and other preprocessing tasks.
+
+**Sentence Transformers:** Used for generating embeddings in the RAG system.
+
+#### Vector Database
+
+**FAISS:** Used to store document embeddings and perform fast similarity search for the chatbot.
+
+#### Other Libraries
+
+**NumPy and Pandas:** Used for data processing and manipulation.
+
+**Hugging Face Transformers:** Used to access pretrained language models for abstractive summarization.
+
+These platforms and tools collectively support the development, training, deployment, and interaction of the legal text analysis system.
 
 ---
 

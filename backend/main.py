@@ -28,7 +28,7 @@ if not GEMINI_API_KEY:
 from predict import segment_text
 from src.summarizer import SentenceSummarizer
 from src.rhetoric_role_pred import load_rhetorical_model, predict_roles
-from src.role_aware_tfidf_mmr import summarize as role_aware_summarize, split_sentences as role_aware_split
+from src.role_aware_tfidf_mmr import summarize as role_aware_summarize
 
 # --------------------------------------------------
 # Chatbot imports (ROUTER ONLY)
@@ -132,9 +132,12 @@ def summarize(req: SummarizationRequest):
         raise HTTPException(status_code=400, detail="Input text cannot be empty")
 
     try:
+        # Centralized sentence segmentation instead of letting each module segment differently
+        sentences = segment_text(req.text)
+
         # Use the newly connected role-aware MMR summarizer
         selected, weights, component_scores = role_aware_summarize(
-            judgement=req.text,
+            sentences=sentences,
             rhet_model=rhet_model,
             vocab=rhet_vocab,
             label_encoder=rhet_label_encoder,
@@ -142,13 +145,10 @@ def summarize(req: SummarizationRequest):
             top_k=req.top_k,
             preserve_order=req.preserve_order if req.preserve_order is not None else True
         )
-        
-        # Get original sentence count for response
-        orig_sentences = role_aware_split(req.text)
 
         return SummarizationResponse(
             summary=" ".join(selected),
-            original_sentence_count=len(orig_sentences),
+            original_sentence_count=len(sentences),
             summary_sentence_count=len(selected),
             sentences=selected,
         )
