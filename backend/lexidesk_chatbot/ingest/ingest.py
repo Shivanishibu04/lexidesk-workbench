@@ -60,15 +60,25 @@ print(
 )
 
 # --------------------------------------------------
-# PDF extraction
+# Document extraction (PDF / TXT)
 # --------------------------------------------------
-def extract_pages_from_pdf(pdf_path: str):
-    doc = fitz.open(pdf_path)
+def extract_pages_from_file(file_path: str):
+    if file_path.lower().endswith('.txt'):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            text = f.read()
+        return [{
+            "doc_id": Path(file_path).name,
+            "page": 1,
+            "text": text,
+        }]
+    
+    # default assume pdf
+    doc = fitz.open(file_path)
     pages = []
 
     for i in range(len(doc)):
         pages.append({
-            "doc_id": Path(pdf_path).name,
+            "doc_id": Path(file_path).name,
             "page": i + 1,
             "text": doc[i].get_text("text"),
         })
@@ -145,8 +155,8 @@ def chunk_pages(segmented_pages, max_chars=1600):
 def run(pdf_paths):
     all_pages = []
 
-    for pdf in pdf_paths:
-        all_pages.extend(extract_pages_from_pdf(pdf))
+    for file_path in pdf_paths:
+        all_pages.extend(extract_pages_from_file(file_path))
 
     with open(PAGES_JSONL, "w", encoding="utf-8") as f:
         for p in all_pages:

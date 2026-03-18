@@ -60,6 +60,14 @@ export interface DocumentUploadResponse {
   status: string;
 }
 
+export interface RhetoricalRoleResponse {
+  roles: Array<{ sentence: string; role: string }>;
+}
+
+export interface AbstractiveSummaryResponse {
+  summary: string;
+}
+
 // ----------------------------
 // Health Check
 // ----------------------------
@@ -159,6 +167,46 @@ export async function sendChatMessage(
   if (!response.ok) {
     const error = await response.text();
     throw new Error(`Chat request failed: ${error}`);
+  }
+
+  return await response.json();
+}
+
+// ----------------------------
+// Rhetorical Role Classifier
+// ----------------------------
+export async function classifyRhetoricalRoles(
+  sentences: string[]
+): Promise<RhetoricalRoleResponse> {
+  const response = await fetch(`${API_BASE_URL}/classify-roles`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sentences }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Rhetorical Role Classification failed: ${error}`);
+  }
+
+  return await response.json();
+}
+
+// ----------------------------
+// Abstractive Summarization
+// ----------------------------
+export async function abstractiveSummarizeText(
+  text: string
+): Promise<AbstractiveSummaryResponse> {
+  const response = await fetch(`${API_BASE_URL}/abstractive-summarize`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Abstractive Summarization failed: ${error}`);
   }
 
   return await response.json();

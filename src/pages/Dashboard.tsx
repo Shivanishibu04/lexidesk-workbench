@@ -1,8 +1,15 @@
-import { FileText, BookOpen, MessageSquare, Scale, ArrowRight } from 'lucide-react';
+import { FileText, BookOpen, MessageSquare, Scale, ArrowRight, Layers, Tag, AlignLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 const tools = [
+  {
+    title: 'Document Hub',
+    description: 'Upload a document once and automatically process it through all available AI modules.',
+    icon: Layers,
+    url: '/document-hub',
+    accent: 'from-blue-500/20 to-blue-500/5',
+  },
   {
     title: 'Sentence Boundary Detection',
     description: 'Leverage our CNN-CRF model to accurately detect sentence boundaries in complex legal documents.',
@@ -12,10 +19,24 @@ const tools = [
   },
   {
     title: 'Extractive Summarizer',
-    description: 'Generate concise summaries from lengthy legal texts using advanced NLP techniques.',
+    description: 'Generate concise extractive summaries from lengthy legal texts using advanced NLP techniques.',
     icon: BookOpen,
     url: '/summarizer',
     accent: 'from-forest/20 to-forest/5',
+  },
+  {
+    title: 'Abstractive Summarizer',
+    description: 'Generate re-written, intelligent abstractive summaries of complex legal documents.',
+    icon: AlignLeft,
+    url: '/abstractive-summary',
+    accent: 'from-purple-500/20 to-purple-500/5',
+  },
+  {
+    title: 'Rhetorical Role Classifier',
+    description: 'Automatically label sentences with legal rhetorical roles to understand document structure.',
+    icon: Tag,
+    url: '/rhetorical-role',
+    accent: 'from-indigo-500/20 to-indigo-500/5',
   },
   {
     title: 'Legal Chatbot',
@@ -85,13 +106,13 @@ export default function Dashboard() {
         </h2>
         <div className="prose-legal text-sm space-y-3">
           <p className="text-muted-foreground">
-            LeXiDesk combines cutting-edge natural language processing with legal expertise 
-            to streamline document analysis. Our tools are designed to assist legal professionals 
+            LeXiDesk combines cutting-edge natural language processing with legal expertise
+            to streamline document analysis. Our tools are designed to assist legal professionals
             in processing, understanding, and extracting insights from complex legal texts.
           </p>
           <p className="text-muted-foreground">
-            Powered by CNN-CRF models for precise sentence segmentation and RAG-based retrieval 
-            for intelligent question answering, LeXiDesk represents the intersection of artificial 
+            Powered by CNN-CRF models for precise sentence segmentation and RAG-based retrieval
+            for intelligent question answering, LeXiDesk represents the intersection of artificial
             intelligence and legal scholarship.
           </p>
         </div>

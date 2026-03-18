@@ -27,6 +27,8 @@ if not GEMINI_API_KEY:
 # --------------------------------------------------
 from predict import segment_text
 from src.summarizer import SentenceSummarizer
+from src.rhetoric_role_pred import load_rhetorical_model, predict_roles
+from src.role_aware_tfidf_mmr import summarize as role_aware_summarize, split_sentences as role_aware_split
 
 # --------------------------------------------------
 # Chatbot imports (ROUTER ONLY)
@@ -59,6 +61,10 @@ app.add_middleware(
 # --------------------------------------------------
 summarizer = SentenceSummarizer()
 
+# Initialize rhetorical model ONCE
+print("Initializing rhetorical model...")
+rhet_model, rhet_vocab, rhet_label_encoder = load_rhetorical_model()
+
 # --------------------------------------------------
 # Schemas
 # --------------------------------------------------
@@ -86,6 +92,12 @@ class DocumentUploadResponse(BaseModel):
     filename: str
     status: str
 
+class RhetoricalRoleRequest(BaseModel):
+    sentences: List[str]
+
+class RhetoricalRoleResponse(BaseModel):
+    roles: List[dict]
+
 # --------------------------------------------------
 # Health & Root
 # --------------------------------------------------
@@ -98,7 +110,7 @@ def health():
     return {"status": "ok"}
 
 # --------------------------------------------------
-# Sentence Detection
+# Sentence Detection module 
 # --------------------------------------------------
 @app.post("/predict", response_model=SentenceDetectionResponse)
 def predict_sentences(req: SentenceDetectionRequest):
@@ -120,29 +132,50 @@ def summarize(req: SummarizationRequest):
         raise HTTPException(status_code=400, detail="Input text cannot be empty")
 
     try:
-        sentences = segment_text(req.text)
-        if not sentences:
-            raise ValueError("No sentences detected")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Segmentation failed: {e}")
-
-    try:
-        selected, _, _ = summarizer.summarize(
-            sentences=sentences,
-            original_text=req.text,
-            compression=req.compression_ratio,
+        # Use the newly connected role-aware MMR summarizer
+        selected, weights, component_scores = role_aware_summarize(
+            judgement=req.text,
+            rhet_model=rhet_model,
+            vocab=rhet_vocab,
+            label_encoder=rhet_label_encoder,
+            compression=req.compression_ratio if req.compression_ratio is not None else 0.217,
             top_k=req.top_k,
-            preserve_order=req.preserve_order,
+            preserve_order=req.preserve_order if req.preserve_order is not None else True
+        )
+        
+        # Get original sentence count for response
+        orig_sentences = role_aware_split(req.text)
+
+        return SummarizationResponse(
+            summary=" ".join(selected),
+            original_sentence_count=len(orig_sentences),
+            summary_sentence_count=len(selected),
+            sentences=selected,
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Summarization failed: {e}")
+        print(f"[Error] Role-aware summarization failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Summarization failed: {str(e)}")
 
-    return SummarizationResponse(
-        summary=" ".join(selected),
-        original_sentence_count=len(sentences),
-        summary_sentence_count=len(selected),
-        sentences=selected,
-    )
+# --------------------------------------------------
+# Rhetorical Role Classification
+# --------------------------------------------------
+@app.post("/classify-roles", response_model=RhetoricalRoleResponse)
+def classify_roles(req: RhetoricalRoleRequest):
+    if not req.sentences:
+        raise HTTPException(status_code=400, detail="Sentence list cannot be empty")
+
+    try:
+        roles = predict_roles(req.sentences, rhet_model, rhet_vocab, rhet_label_encoder)
+        
+        # Combine into list of dicts for frontend
+        results = []
+        for sent, role in zip(req.sentences, roles):
+            results.append({"sentence": sent, "role": role})
+            
+        return {"roles": results}
+    except Exception as e:
+        print(f"[Error] Rhetorical classification failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # --------------------------------------------------
 # PDF Upload & Ingestion (FULL PIPELINE)
@@ -173,6 +206,16 @@ def upload(file: UploadFile = File(...)):
         # python embeddings/indexer.py
         # --------------------------------------------------
         build_index()
+
+        # --------------------------------------------------
+        # 4. Cleanup
+        # Remove the uploaded file after processing
+        # --------------------------------------------------
+        try:
+            os.remove(pdf_path)
+            print(f"[Cleanup] Deleted temporary upload: {pdf_path}")
+        except Exception as cleanup_err:
+            print(f"[Warn] Could not delete {pdf_path}: {cleanup_err}")
 
         return {
             "document_id": document_id,

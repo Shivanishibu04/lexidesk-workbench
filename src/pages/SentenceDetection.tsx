@@ -1,29 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FileText, Wand2, Copy, Check, RotateCcw } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { LoadingState } from '@/components/ui/LoadingSpinner';
 import { detectSentences } from '@/lib/api';
 import { toast } from 'sonner';
-
-const sampleText = `The court hereby finds that the defendant, having been duly notified of the proceedings, failed to appear at the scheduled hearing. Pursuant to Rule 55(a) of the Federal Rules of Civil Procedure, default judgment may be entered against a party who has failed to plead or otherwise defend. The plaintiff has demonstrated that proper service was effectuated in accordance with Rule 4. Therefore, the court grants the motion for default judgment.`;
+import { FileInputComponent } from '@/components/ui/FileInputComponent';
+import { useDocumentContext } from '@/lib/DocumentContext';
 
 export default function SentenceDetection() {
-  const [inputText, setInputText] = useState('');
-  const [sentences, setSentences] = useState<string[]>([]);
+  const { documentText, setDocumentText, sentenceResults, setSentenceResults, resetContext } = useDocumentContext();
+  const [sentences, setSentences] = useState<string[]>(sentenceResults?.sentences || []);
   const [isLoading, setIsLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  const handleDetect = async () => {
-    if (!inputText.trim()) {
+  useEffect(() => {
+    if (sentenceResults?.sentences) {
+      setSentences(sentenceResults.sentences);
+    }
+  }, [sentenceResults]);
+
+  const handleExtractText = async (text: string) => {
+    resetContext();
+    setDocumentText(text);
+    // Auto-detect on new upload
+    handleDetect(text, true);
+  };
+
+  const handleDetect = async (textToAnalyze: string = documentText, forceRun: boolean = false) => {
+    if (!textToAnalyze.trim()) {
       toast.error('Please enter some text to analyze');
+      return;
+    }
+
+    if (!forceRun && textToAnalyze === documentText && sentenceResults) {
+      toast.success('Results already loaded from context');
       return;
     }
 
     setIsLoading(true);
     try {
-      // Call backend API
-      const result = await detectSentences(inputText);
+      const result = await detectSentences(textToAnalyze);
       setSentences(result.sentences);
+      setSentenceResults(result);
       toast.success(`Detected ${result.count} sentence${result.count > 1 ? 's' : ''}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to detect sentences';
@@ -50,13 +68,10 @@ export default function SentenceDetection() {
   };
 
   const handleReset = () => {
-    setInputText('');
     setSentences([]);
-  };
-
-  const handleLoadSample = () => {
-    setInputText(sampleText);
-    setSentences([]);
+    setSentenceResults(null);
+    setDocumentText(''); // Also clear text for this simple reset
+    resetContext();
   };
 
   return (
@@ -80,30 +95,16 @@ export default function SentenceDetection() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Input Section */}
-        <section className="card-academia p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-display font-semibold text-foreground">
-              Input Text
-            </h2>
-            <button
-              onClick={handleLoadSample}
-              className="text-xs text-primary hover:text-primary/80 transition-colors"
-            >
-              Load Sample
-            </button>
-          </div>
-
-          <textarea
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder="Paste your legal text here for sentence boundary detection..."
-            className="input-academia w-full h-64 resize-none font-serif text-sm leading-relaxed"
+        <section className="flex flex-col gap-4">
+          <FileInputComponent
+            onExtractText={handleExtractText}
+            isLoading={isLoading}
+            value={documentText}
           />
-
-          <div className="flex gap-3 mt-4">
+          <div className="flex gap-3">
             <button
-              onClick={handleDetect}
-              disabled={isLoading || !inputText.trim()}
+              onClick={() => handleDetect()}
+              disabled={isLoading || !documentText.trim()}
               className="btn-primary-academia flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Wand2 className="w-4 h-4" />
@@ -114,7 +115,7 @@ export default function SentenceDetection() {
               className="btn-secondary-academia flex items-center gap-2"
             >
               <RotateCcw className="w-4 h-4" />
-              Reset
+              Reset Results
             </button>
           </div>
         </section>
@@ -144,7 +145,7 @@ export default function SentenceDetection() {
           {isLoading ? (
             <LoadingState message="Analyzing text with CNN-CRF model..." />
           ) : sentences.length > 0 ? (
-            <div className="space-y-3 max-h-[500px] overflow-y-auto scrollbar-academia pr-2">
+            <div className="space-y-3 max-h-[600px] overflow-y-auto scrollbar-academia pr-2">
               {sentences.map((sentence, index) => (
                 <div
                   key={index}
@@ -175,10 +176,10 @@ export default function SentenceDetection() {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="flex flex-col items-center justify-center py-12 text-center h-full min-h-[300px]">
               <FileText className="w-12 h-12 text-muted-foreground/30 mb-4" />
-              <p className="text-sm text-muted-foreground">
-                Enter text and click "Detect Sentences" to see results
+              <p className="text-sm text-muted-foreground border border-dashed border-border p-6 rounded-lg w-full">
+                Upload a document or paste text, then click "Detect Sentences" to see results.
               </p>
             </div>
           )}

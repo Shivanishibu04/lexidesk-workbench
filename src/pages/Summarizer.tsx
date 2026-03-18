@@ -1,34 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BookOpen, Sparkles, Copy, RotateCcw, Settings2 } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { LoadingState } from '@/components/ui/LoadingSpinner';
 import { summarizeText, SummarizationResponse } from '@/lib/api';
 import { toast } from 'sonner';
-
-const sampleText = `The Supreme Court of the United States held that the Commerce Clause grants Congress the power to regulate activities that substantially affect interstate commerce. In this landmark decision, the Court examined the historical context of federal regulatory power and its evolution since the New Deal era. The majority opinion, written by Chief Justice, emphasized that economic activities, even when purely local in nature, may have a cumulative effect on interstate commerce that brings them within federal regulatory authority. The dissenting justices argued that such an expansive interpretation of the Commerce Clause effectively grants Congress unlimited power over all economic activity. They contended that this interpretation undermines the constitutional principle of enumerated powers and threatens the balance of federalism. The Court's decision has significant implications for future legislation concerning healthcare, environmental regulation, and civil rights enforcement. Legal scholars remain divided on whether this ruling represents a proper interpretation of constitutional text and original intent.`;
+import { FileInputComponent } from '@/components/ui/FileInputComponent';
+import { useDocumentContext } from '@/lib/DocumentContext';
 
 export default function Summarizer() {
-  const [inputText, setInputText] = useState('');
-  const [result, setResult] = useState<SummarizationResponse | null>(null);
+  const { documentText, setDocumentText, extractiveResults, setExtractiveResults, resetContext } = useDocumentContext();
+  const [result, setResult] = useState<SummarizationResponse | null>(extractiveResults);
   const [isLoading, setIsLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [topK, setTopK] = useState<number>(3);
-  const [compressionRatio, setCompressionRatio] = useState<number>(0.3);
+  const [topK, setTopK] = useState<number | ''>('');
+  const [compressionRatio, setCompressionRatio] = useState<number>(0.217);
 
-  const handleSummarize = async () => {
-    if (!inputText.trim()) {
+  useEffect(() => {
+    if (extractiveResults) {
+      setResult(extractiveResults);
+    }
+  }, [extractiveResults]);
+
+  const handleExtractText = async (text: string) => {
+    resetContext();
+    setDocumentText(text);
+    handleSummarize(text, true);
+  };
+
+  const handleSummarize = async (textToSummarize: string = documentText, forceRun: boolean = false) => {
+    if (!textToSummarize.trim()) {
       toast.error('Please enter some text to summarize');
+      return;
+    }
+
+    if (!forceRun && textToSummarize === documentText && extractiveResults) {
+      toast.info('Results already loaded from context');
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await summarizeText(inputText, {
-        top_k: topK,
+      const response = await summarizeText(textToSummarize, {
+        top_k: topK === '' ? undefined : topK,
         compression_ratio: compressionRatio,
-        preserve_order: true, // ensure original sentence order is maintained
+        preserve_order: true,
       });
       setResult(response);
+      setExtractiveResults(response);
       toast.success('Summary generated successfully');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate summary';
@@ -49,13 +67,10 @@ export default function Summarizer() {
   };
 
   const handleReset = () => {
-    setInputText('');
     setResult(null);
-  };
-
-  const handleLoadSample = () => {
-    setInputText(sampleText);
-    setResult(null);
+    setExtractiveResults(null);
+    setDocumentText(''); // clear local text tracking in UI
+    resetContext();
   };
 
   const compressionPercentage =
@@ -86,10 +101,10 @@ export default function Summarizer() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Input Section */}
-        <section className="card-academia p-6">
-          <div className="flex items-center justify-between mb-4">
+        <section className="flex flex-col gap-4">
+          <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg font-display font-semibold text-foreground">
-              Input Text
+              Document Input
             </h2>
             <div className="flex items-center gap-3">
               <button
@@ -97,12 +112,7 @@ export default function Summarizer() {
                 className={`p-2 rounded-md transition-colors ${showSettings ? 'bg-muted text-primary' : 'hover:bg-muted/50 text-muted-foreground'}`}
               >
                 <Settings2 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={handleLoadSample}
-                className="text-xs text-primary hover:text-primary/80 transition-colors"
-              >
-                Load Sample
+                Settings
               </button>
             </div>
           </div>
@@ -121,9 +131,10 @@ export default function Summarizer() {
                   <input
                     type="number"
                     min={1}
-                    max={20}
+                    max={50}
                     value={topK}
-                    onChange={(e) => setTopK(Number(e.target.value))}
+                    onChange={(e) => setTopK(e.target.value === '' ? '' : Number(e.target.value))}
+                    placeholder="Auto"
                     className="input-academia w-full text-sm"
                   />
                 </div>
@@ -145,17 +156,16 @@ export default function Summarizer() {
             </div>
           )}
 
-          <textarea
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder="Paste your legal document here for summarization..."
-            className="input-academia w-full h-64 resize-none font-serif text-sm leading-relaxed"
+          <FileInputComponent
+            onExtractText={handleExtractText}
+            isLoading={isLoading}
+            value={documentText}
           />
 
-          <div className="flex gap-3 mt-4">
+          <div className="flex gap-3">
             <button
-              onClick={handleSummarize}
-              disabled={isLoading || !inputText.trim()}
+              onClick={() => handleSummarize()}
+              disabled={isLoading || !documentText.trim()}
               className="btn-primary-academia flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Sparkles className="w-4 h-4" />
@@ -166,7 +176,7 @@ export default function Summarizer() {
               className="btn-secondary-academia flex items-center gap-2"
             >
               <RotateCcw className="w-4 h-4" />
-              Reset
+              Reset Results
             </button>
           </div>
         </section>
@@ -222,10 +232,10 @@ export default function Summarizer() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="flex flex-col items-center justify-center py-12 text-center h-full min-h-[300px]">
               <BookOpen className="w-12 h-12 text-muted-foreground/30 mb-4" />
-              <p className="text-sm text-muted-foreground">
-                Enter text and click "Generate Summary" to see results
+              <p className="text-sm text-muted-foreground border border-dashed border-border p-6 rounded-lg w-full">
+                Upload a document or paste text, then click "Generate Summary" to see results
               </p>
             </div>
           )}

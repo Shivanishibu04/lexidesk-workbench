@@ -1,4 +1,4 @@
-import { Scale, FileText, MessageSquare, BookOpen, Home } from 'lucide-react';
+import { Scale, FileText, MessageSquare, BookOpen, Home, Layers, Tag, AlignLeft } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
@@ -10,16 +10,34 @@ const menuItems = [
     description: 'Overview',
   },
   {
+    title: 'Document Hub',
+    url: '/document-hub',
+    icon: Layers,
+    description: 'Upload once, process all',
+  },
+  {
     title: 'Sentence Detection',
     url: '/sentence-detection',
     icon: FileText,
     description: 'CNN-CRF Boundary Detection',
   },
   {
-    title: 'Summarizer',
+    title: 'Extractive Summarizer',
     url: '/summarizer',
     icon: BookOpen,
     description: 'Extractive Summarization',
+  },
+  {
+    title: 'Abstractive Summarizer',
+    url: '/abstractive-summary',
+    icon: AlignLeft,
+    description: 'Abstractive Summarization',
+  },
+  {
+    title: 'Rhetorical Role',
+    url: '/rhetorical-role',
+    icon: Tag,
+    description: 'Rhetorical Role Classifier',
   },
   {
     title: 'Legal Chatbot',

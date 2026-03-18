@@ -13,6 +13,10 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+# Ensure env vars are loaded
+load_dotenv()
 
 # --------------------------------------------------
 # Router initialization
@@ -56,21 +60,20 @@ def get_llm_client():
         except Exception:
             pass
 
-    # ---------- Gemini (google-generativeai) ----------
+    # ---------- Gemini (google-genai) ----------
     gemini_key = os.getenv("GEMINI_API_KEY")
     if gemini_key:
         try:
-            import google.generativeai as genai
-            genai.configure(api_key=gemini_key)
-            # Return the module itself or a configured object that we can use later
-            # For consistency with the logic below, we'll return the genai module as the 'client'
-            # or a specific model instance if we want to be cleaner.
-            # But the generating code expects 'client.models.generate_content' which is also not quite right for this SDK.
-            # Let's return the genai module and fix the generation logic too.
-            return genai, "gemini"
-        except Exception:
-            pass
+            from google import genai
+            client = genai.Client(api_key=gemini_key)
+            print("[INFO] Gemini LLM client initialized successfully.")
+            return client, "gemini"
+        except ImportError:
+            print("[WARN] Gemini SDK 'google-genai' not found. Try: pip install google-genai")
+        except Exception as e:
+            print(f"[ERROR] Failed to initialize Gemini client: {e}")
 
+    print("[WARN] No LLM provider could be initialized. Check API keys and package installations.")
     return None, None
 
 
@@ -80,14 +83,28 @@ def get_llm_client():
 def generate_answer(question: str, context: str) -> str:
     client, provider = get_llm_client()
 
+    if not provider:
+        return (
+            "No LLM API key configured (OPENAI_API_KEY or GEMINI_API_KEY).\n\n"
+            "Showing retrieved passages only."
+        )
+
     prompt = (
-        "You are a legal assistant.\n"
-        "Answer ONLY using the provided context.\n"
-        "If the answer is not present, say:\n"
-        "'I cannot find this information in the provided documents.'\n\n"
-        f"CONTEXT:\n{context}\n\n"
-        f"QUESTION:\n{question}"
-    )
+    "You are an AI Legal Assistant designed to help users understand legal documents.\n"
+    "Answer ONLY using the information provided in the CONTEXT.\n"
+    "Do NOT use external knowledge, assumptions, or guesses.\n"
+    "If the answer is not clearly present in the CONTEXT, respond exactly with:\n"
+    "'I cannot find this information in the provided documents.'\n\n"
+    "Guidelines:\n"
+    "- Provide clear and concise answers.\n"
+    "- Base your response strictly on the provided context.\n"
+    "- If multiple relevant points exist, summarize them clearly.\n"
+    "- Do not fabricate legal clauses, facts, or interpretations.\n"
+    "- If possible, reference or quote the relevant part of the context.\n\n"
+    f"CONTEXT:\n{context}\n\n"
+    f"QUESTION:\n{question}\n\n"
+    "ANSWER:"
+)
 
     # ---------- OpenAI ----------
     if provider == "openai":
@@ -102,12 +119,13 @@ def generate_answer(question: str, context: str) -> str:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"OpenAI error: {e}")
 
-    # ---------- Gemini ----------
+    # ---------- Gemini (New SDK) ----------
     if provider == "gemini":
         try:
-            # client is the 'genai' module here
-            model = client.GenerativeModel("gemini-1.5-pro")
-            response = model.generate_content(prompt)
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
             return response.text.strip()
         except Exception as e:
             print(f"[WARN] Gemini error: {e}")

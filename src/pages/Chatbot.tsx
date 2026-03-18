@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MessageSquare, Upload, Send, FileText, X, Bot, User } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { uploadDocument, sendChatMessage, ChatMessage } from '@/lib/api';
 import { toast } from 'sonner';
+import { useDocumentContext } from '@/lib/DocumentContext';
 
 interface Message extends ChatMessage {
   id: string;
@@ -12,10 +14,20 @@ interface Message extends ChatMessage {
 }
 
 export default function Chatbot() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const {
+    documentText,
+    chatbotMessages,
+    setChatbotMessages,
+    chatbotUploadedFile,
+    setChatbotUploadedFile,
+    chatbotHasAutoUploaded,
+    setChatbotHasAutoUploaded
+  } = useDocumentContext();
+  
+  const location = useLocation();
+
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<{ name: string; id: string } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -26,26 +38,58 @@ export default function Chatbot() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [chatbotMessages]);
+
+  useEffect(() => {
+    const shouldAutoUpload = location.state?.autoUpload;
+    if (shouldAutoUpload && documentText && !chatbotUploadedFile && !isUploading && !chatbotHasAutoUploaded) {
+      handleAutoUploadText(documentText);
+    }
+  }, [documentText, chatbotUploadedFile, isUploading, chatbotHasAutoUploaded, location.state]);
+
+  const handleAutoUploadText = async (text: string) => {
+    setChatbotHasAutoUploaded(true);
+    setIsUploading(true);
+    try {
+      const file = new File([text], "document.txt", { type: "text/plain" });
+      const result = await uploadDocument(file);
+      setChatbotUploadedFile({ name: "Hub Document.txt", id: result.document_id });
+      toast.success('Document imported from Hub successfully');
+
+      setChatbotMessages([
+        ...chatbotMessages,
+        {
+          id: `sys-${Date.now()}`,
+          role: 'assistant',
+          content: `I've imported your document from the Document Hub. You can now ask questions about its contents.`,
+          timestamp: new Date(),
+        },
+      ]);
+    } catch (error) {
+      toast.error('Failed to auto-import document from Hub');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-      toast.error('Please upload a PDF file');
+    if (!file.name.toLowerCase().endsWith('.pdf') && !file.name.toLowerCase().endsWith('.txt')) {
+      toast.error('Please upload a PDF or TXT file');
       return;
     }
 
     setIsUploading(true);
     try {
       const result = await uploadDocument(file);
-      setUploadedFile({ name: result.filename, id: result.document_id });
+      setChatbotUploadedFile({ name: result.filename, id: result.document_id });
       toast.success(`Document "${result.filename}" uploaded successfully`);
 
       // Add system message
-      setMessages(prev => [
-        ...prev,
+      setChatbotMessages([
+        ...chatbotMessages,
         {
           id: `sys-${Date.now()}`,
           role: 'assistant',
@@ -68,14 +112,15 @@ export default function Chatbot() {
   };
 
   const handleRemoveFile = () => {
-    setUploadedFile(null);
+    setChatbotUploadedFile(null);
+    setChatbotHasAutoUploaded(false); // allow re-upload if they want
     toast.info('Document removed');
   };
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
 
-    if (!uploadedFile) {
+    if (!chatbotUploadedFile) {
       toast.error('Please upload a document before asking questions');
       return;
     }
@@ -87,7 +132,8 @@ export default function Chatbot() {
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...chatbotMessages, userMessage];
+    setChatbotMessages(newMessages);
     setInputValue('');
     setIsLoading(true);
 
@@ -102,7 +148,7 @@ export default function Chatbot() {
         relevantPassages: response.sources.map(s => s.text),
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      setChatbotMessages([...newMessages, assistantMessage]);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to get response';
       toast.error(errorMessage, {
@@ -151,7 +197,7 @@ export default function Chatbot() {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".pdf"
+            accept=".pdf,.txt"
             onChange={handleFileUpload}
             className="hidden"
           />
@@ -167,18 +213,18 @@ export default function Chatbot() {
               <Upload className="w-8 h-8 text-muted-foreground" />
             )}
             <span className="text-sm text-muted-foreground">
-              {isUploading ? 'Processing...' : 'Upload PDF'}
+              {isUploading ? 'Processing...' : 'Upload File'}
             </span>
           </button>
 
           {/* Uploaded File */}
-          {uploadedFile && (
+          {chatbotUploadedFile && (
             <div className="p-3 bg-muted/30 rounded-lg border border-border/50 animate-fade-in">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <FileText className="w-4 h-4 text-primary shrink-0" />
                   <span className="text-sm text-foreground truncate">
-                    {uploadedFile.name}
+                    {chatbotUploadedFile.name}
                   </span>
                 </div>
                 <button
@@ -193,7 +239,7 @@ export default function Chatbot() {
 
           <div className="mt-auto pt-4 border-t border-border/50">
             <p className="text-xs text-muted-foreground">
-              Upload a legal document (PDF) to enable context-aware Q&A. The chatbot will retrieve relevant passages to answer your questions.
+              Upload a legal document (PDF / TXT) to enable context-aware Q&A. The chatbot will retrieve relevant passages to answer your questions.
             </p>
           </div>
         </aside>
@@ -202,7 +248,7 @@ export default function Chatbot() {
         <section className="lg:col-span-3 card-academia flex flex-col overflow-hidden">
           {/* Messages */}
           <div className="flex-1 overflow-y-auto scrollbar-academia p-4 space-y-4">
-            {messages.length === 0 ? (
+            {chatbotMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-12">
                 <Bot className="w-16 h-16 text-muted-foreground/30 mb-4" />
                 <h3 className="text-lg font-display font-semibold text-foreground mb-2">
@@ -214,7 +260,7 @@ export default function Chatbot() {
                 </p>
               </div>
             ) : (
-              messages.map((message) => (
+              chatbotMessages.map((message) => (
                 <div
                   key={message.id}
                   className={`flex gap-3 animate-fade-in ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}

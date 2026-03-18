@@ -3,3 +3,8 @@ __pycache__/
 venv/
 *.pyc
 uploads/
+torchcrf/
+models/
+*.pt
+*.joblib
+*.bin
