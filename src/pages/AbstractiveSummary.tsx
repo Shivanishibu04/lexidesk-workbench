@@ -64,6 +64,7 @@ export default function AbstractiveSummary() {
         setAbstractiveResults(null);
         setDocumentText(''); // clear local text tracking in UI
         resetContext();
+        toast.success('Document context reset');
     };
 
     return (
@@ -90,8 +91,17 @@ export default function AbstractiveSummary() {
                 <section className="flex flex-col gap-4">
                     <div className="flex items-center justify-between mb-2">
                         <h2 className="text-lg font-display font-semibold text-foreground">
-                            Document Input
+                            1. Upload Legal Document
                         </h2>
+                        {documentText && (
+                            <button
+                                onClick={handleReset}
+                                className="text-xs text-muted-foreground hover:text-red-500 transition-colors flex items-center gap-1 bg-muted/20 px-3 py-1.5 rounded-md"
+                            >
+                                <RotateCcw className="w-3.5 h-3.5" />
+                                Reset Document
+                            </button>
+                        )}
                     </div>
 
                     <FileInputComponent
@@ -99,24 +109,6 @@ export default function AbstractiveSummary() {
                         isLoading={isLoading}
                         value={documentText}
                     />
-
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => handleSummarize()}
-                            disabled={isLoading || !documentText.trim()}
-                            className="btn-primary-academia flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <Sparkles className="w-4 h-4" />
-                            Generate Summary
-                        </button>
-                        <button
-                            onClick={handleReset}
-                            className="btn-secondary-academia flex items-center gap-2"
-                        >
-                            <RotateCcw className="w-4 h-4" />
-                            Reset Results
-                        </button>
-                    </div>
                 </section>
 
                 {/* Results Section */}

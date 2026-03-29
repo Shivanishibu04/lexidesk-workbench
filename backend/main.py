@@ -29,6 +29,7 @@ from predict import segment_text
 from src.summarizer import SentenceSummarizer
 from src.rhetoric_role_pred import load_rhetorical_model, predict_roles
 from src.role_aware_tfidf_mmr import summarize as role_aware_summarize
+from src.abstractive_summarizer import PegasusSummarizer
 
 # --------------------------------------------------
 # Chatbot imports (ROUTER ONLY)
@@ -65,6 +66,10 @@ summarizer = SentenceSummarizer()
 print("Initializing rhetorical model...")
 rhet_model, rhet_vocab, rhet_label_encoder = load_rhetorical_model()
 
+# Initialize abstractive summarizer
+print("Initializing Pegasus summarizer...")
+pegasus_summarizer = PegasusSummarizer()
+
 # --------------------------------------------------
 # Schemas
 # --------------------------------------------------
@@ -86,6 +91,12 @@ class SummarizationResponse(BaseModel):
     original_sentence_count: int
     summary_sentence_count: int
     sentences: List[str]
+
+class AbstractiveSummaryRequest(BaseModel):
+    text: str
+
+class AbstractiveSummaryResponse(BaseModel):
+    summary: str
 
 class DocumentUploadResponse(BaseModel):
     document_id: str
@@ -155,6 +166,40 @@ def summarize(req: SummarizationRequest):
     except Exception as e:
         print(f"[Error] Role-aware summarization failed: {e}")
         raise HTTPException(status_code=500, detail=f"Summarization failed: {str(e)}")
+
+# --------------------------------------------------
+# Abstractive Summarization
+# --------------------------------------------------
+@app.post("/abstractive-summarize", response_model=AbstractiveSummaryResponse)
+def abstractive_summarize(req: AbstractiveSummaryRequest):
+    if not req.text.strip():
+        raise HTTPException(status_code=400, detail="Input text cannot be empty")
+        
+    try:
+        sentences = segment_text(req.text)
+        
+        # 1. Provide extractive summary as input
+        selected, _, _ = role_aware_summarize(
+            sentences=sentences,
+            rhet_model=rhet_model,
+            vocab=rhet_vocab,
+            label_encoder=rhet_label_encoder,
+            compression=0.3, # relaxed extraction for abstractive
+            top_k=50,
+            preserve_order=True
+        )
+        
+        extractive_input = " ".join(selected)
+        if not extractive_input.strip():
+            extractive_input = req.text[:2000] # fallback
+
+        # Generate abstractive summary with dynamic rephrasing length
+        summary = pegasus_summarizer.summarize(extractive_input)
+        
+        return AbstractiveSummaryResponse(summary=summary)
+    except Exception as e:
+        print(f"[Error] Abstractive summarization failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Abstractive summarization failed: {str(e)}")
 
 # --------------------------------------------------
 # Rhetorical Role Classification

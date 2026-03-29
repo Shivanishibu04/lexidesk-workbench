@@ -71,10 +71,39 @@ export function FileInputComponent({ onExtractText, isLoading, value = '' }: Fil
                 let fullText = '';
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: 1.0 });
+                    const pageHeight = viewport.height;
+                    
                     const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map((item: any) => item.str).join(' ');
+                    
+                    // Filter out headers (top 8%) and footers (bottom 8%)
+                    const validItems = textContent.items.filter((item: any) => {
+                        // If no transform data, keep it to be safe
+                        if (!item.transform || item.transform.length < 6) return true;
+                        
+                        // In standard PDF coordinates, y=0 is the bottom of the page
+                        const y = item.transform[5];
+                        const isHeader = y > pageHeight * 0.92;
+                        const isFooter = y < pageHeight * 0.08;
+                        
+                        return !isHeader && !isFooter;
+                    });
+                    
+                    // Combine chunks and add a soft break between them
+                    let pageText = validItems.map((item: any) => item.str).join(' ');
                     fullText += pageText + '\n\n';
                 }
+                
+                // Format the complete text:
+                // 1. Fix hyphenated line breaks (e.g., "constitu- tion" -> "constitution")
+                fullText = fullText.replace(/([a-zA-Z]+)-\s+([a-zA-Z]+)/g, "$1$2");
+                // 2. Remove excessive duplicate spaces
+                fullText = fullText.replace(/ {2,}/g, ' ');
+                // 3. Normalize multiple whitespace and newlines but keep paragraph breaks (max 2 newlines)
+                fullText = fullText.replace(/\n{3,}/g, '\n\n');
+                // 4. Trim leading/trailing whitespace
+                fullText = fullText.trim();
+                
                 onExtractText(fullText);
                 setInputText(fullText);
                 toast.success('PDF text extracted successfully', { id: 'pdf-extract' });

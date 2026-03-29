@@ -74,7 +74,7 @@ Before you begin, ensure you have the following installed on your system:
 
 **NumPy and Pandas:** Used for data processing and manipulation.
 
-**Hugging Face Transformers:** Used to access pretrained language models for abstractive summarization.
+**Hugging Face Transformers & SentencePiece:** Used to access pretrained language models. Specifically, the `nsi319/legal-pegasus` model is used for generating high-quality abstractive summaries of legal text by taking extractive summaries as input.
 
 These platforms and tools collectively support the development, training, deployment, and interaction of the legal text analysis system.
 
